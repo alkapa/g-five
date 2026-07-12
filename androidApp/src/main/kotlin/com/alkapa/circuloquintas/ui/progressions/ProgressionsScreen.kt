@@ -93,6 +93,15 @@ fun ProgressionsScreen(viewModel: ProgressionsViewModel) {
     }
 
     Dialogs(state, viewModel)
+
+    state.instrumentChord?.let { chord ->
+        com.alkapa.circuloquintas.ui.instrument.InstrumentSheet(
+            chord = chord,
+            notation = state.notation,
+            onPlayMidis = viewModel::playMidis,
+            onDismiss = viewModel::closeInstrument,
+        )
+    }
 }
 
 // ------------------------------------------------------------------ borrador
@@ -474,6 +483,13 @@ private fun EditChordDialog(index: Int, state: ProgressionsUiState, viewModel: P
         },
         dismissButton = {
             Row {
+                TextButton(onClick = {
+                    val root = fieldKey.notes()[chord.degreeIndex - 1]
+                    viewModel.openInstrument(
+                        com.alkapa.circuloquintas.domain.ChordBuilder.build(root, quality),
+                    )
+                    viewModel.editChord(null)
+                }) { Text("Instrumento") }
                 TextButton(onClick = { viewModel.removeChord(index) }) { Text("Eliminar") }
                 TextButton(onClick = { viewModel.editChord(null) }) { Text("Cancelar") }
             }

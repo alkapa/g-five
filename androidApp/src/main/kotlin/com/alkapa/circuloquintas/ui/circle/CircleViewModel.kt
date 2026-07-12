@@ -35,6 +35,8 @@ data class CircleUiState(
     val preferFlatEnharmonic: Boolean = false,
     val selectedNeed: Need? = null,
     val fichaDegree: Degree? = null,
+    /** Acorde abierto en la hoja "En el instrumento" (diapasón/tab/piano). */
+    val instrumentChord: Chord? = null,
     val highlightedDegreeIndex: Int? = null,
     val playingRootPc: Int? = null,
     val restored: Boolean = false,
@@ -142,6 +144,17 @@ class CircleViewModel(
     fun openFicha(degree: Degree) = _state.update { it.copy(fichaDegree = degree) }
 
     fun closeFicha() = _state.update { it.copy(fichaDegree = null) }
+
+    /** Hoja "En el instrumento": inversiones sobre diapasón, tab y piano. */
+    fun openInstrument(chord: Chord) =
+        _state.update { it.copy(instrumentChord = chord, fichaDegree = null) }
+
+    fun closeInstrument() = _state.update { it.copy(instrumentChord = null) }
+
+    /** Reproduce midis absolutos (digitaciones de guitarra / colocaciones de piano). */
+    fun playMidis(midis: List<Int>) {
+        audio.playChord(midis)
+    }
 
     /** Alterna F#↔Gb / D#m↔Ebm en la posición enarmónica del círculo. */
     fun toggleEnharmonic() {

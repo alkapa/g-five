@@ -47,6 +47,19 @@ Excluye `:androidApp` y no aplica AGP: todo el motor de dominio y sus tests
 solo a Maven Central. Es el modo con el que se desarrolló y verificó el motor
 en un entorno sin acceso a `dl.google.com`.
 
+## En el instrumento (inversiones)
+
+Desde la ficha de cualquier acorde (círculo o constructor): hoja **"En el
+instrumento"** con las inversiones del acorde vistas sobre el **diapasón
+completo** de la guitarra (mapa de notas por rol de voz + digitaciones
+tocables por zona del mástil, con **tablatura** y reproducción) y sobre el
+**piano** (la inversión repetida en cada octava del teclado, con el bajo
+marcado). Los acordes extendidos se reducen a sus 4 voces esenciales para
+digitar, como en la práctica común.
+
+> Nota de alcance: la spec v1 excluía digitaciones/tablatura (§1.4); el owner
+> levantó esa restricción para esta funcionalidad (jul 2026).
+
 ## Decisiones clave
 
 - El motor deriva los 7 modos griegos **por rotación** de la mayor madre, y las

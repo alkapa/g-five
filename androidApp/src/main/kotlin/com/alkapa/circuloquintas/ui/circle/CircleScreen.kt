@@ -100,6 +100,14 @@ fun CircleScreen(viewModel: CircleViewModel) {
     state.fichaDegree?.let { degree ->
         DegreeFichaSheet(degree, state, viewModel)
     }
+    state.instrumentChord?.let { chord ->
+        com.alkapa.circuloquintas.ui.instrument.InstrumentSheet(
+            chord = chord,
+            notation = state.notation,
+            onPlayMidis = viewModel::playMidis,
+            onDismiss = viewModel::closeInstrument,
+        )
+    }
 }
 
 @Composable
@@ -475,6 +483,9 @@ private fun DegreeFichaSheet(degree: Degree, state: CircleUiState, viewModel: Ci
                 TextButton(onClick = { viewModel.makeTonic(degree) }) {
                     Text("Hacer tónica")
                 }
+            }
+            TextButton(onClick = { viewModel.openInstrument(degree.chord) }) {
+                Text("Ver en el diapasón y el piano (inversiones)")
             }
         }
     }

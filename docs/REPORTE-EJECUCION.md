@@ -146,3 +146,23 @@ con formación musical formal antes del release.**
    `contentDescription`; conviene una pasada con TalkBack real.
 5. El indicador «acorde sonando» cruza al tab Círculo vía `playbackHighlight`
    (implementado, no marcado pendiente).
+
+## 8. Ampliación post-v1: "En el instrumento" (inversiones)
+
+Por pedido del owner (jul 2026) se levantó parcialmente la restricción §1.4
+(digitaciones/tablatura) y se agregó:
+
+- **Dominio** (`domain/instrument`, 10 tests nuevos en verde): voces del
+  acorde con rol (fundamental/3ª/5ª/7ª/extensión), inversiones sobre las ≤4
+  voces esenciales (extendidos reducidos a fundamental+3ª+7ª+extensión, como
+  en la práctica de guitarra), mapa completo del diapasón (afinación
+  estándar, 15 trastes), **generador de digitaciones tocables por inversión**
+  (bajo correcto, todas las voces, span ≤4, ≤4 dedos con cejilla, distribuidas
+  por zonas del mástil — encuentra p. ej. la forma abierta x-3-2-0-1-0 de C),
+  tablatura y colocaciones de piano por octava (C2–B6).
+- **UI**: hoja "En el instrumento" desde la ficha de grado del círculo y desde
+  el diálogo de edición de acorde del constructor: selector de inversión,
+  vista Guitarra (canvas de diapasón con mapa + forma seleccionada etiquetada
+  por intervalo, chips por zona, tablatura monoespaciada, ▶ con los midis
+  reales de la digitación) y vista Piano (teclado dibujado con la inversión
+  repetida por octavas, bajo con borde, ▶).

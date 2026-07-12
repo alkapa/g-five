@@ -32,6 +32,8 @@ data class ProgressionsUiState(
     val saved: List<Progression> = emptyList(),
     val famous: List<Progression> = emptyList(),
     val editingIndex: Int? = null,
+    /** Acorde abierto en la hoja "En el instrumento". */
+    val instrumentChord: com.alkapa.circuloquintas.domain.Chord? = null,
     val showSaveDialog: Boolean = false,
     val showTransposeDialog: Boolean = false,
     val fichaFamousName: String? = null,
@@ -109,6 +111,16 @@ class ProgressionsViewModel(
     }
 
     fun editChord(index: Int?) = _state.update { it.copy(editingIndex = index) }
+
+    fun openInstrument(chord: com.alkapa.circuloquintas.domain.Chord) =
+        _state.update { it.copy(instrumentChord = chord) }
+
+    fun closeInstrument() = _state.update { it.copy(instrumentChord = null) }
+
+    /** Reproduce midis absolutos (digitaciones/colocaciones de la hoja de instrumento). */
+    fun playMidis(midis: List<Int>) {
+        audio.playChord(midis)
+    }
 
     fun setBpm(bpm: Int) {
         holder.update { it.copy(bpm = bpm.coerceIn(40, 200)) }
