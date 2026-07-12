@@ -28,6 +28,8 @@ android {
             externalNativeBuild {
                 cmake {
                     cppFlags += listOf("-std=c++17")
+                    // El prefab de Oboe requiere la STL compartida (CXX1212).
+                    arguments += listOf("-DANDROID_STL=c++_shared")
                 }
             }
         }
