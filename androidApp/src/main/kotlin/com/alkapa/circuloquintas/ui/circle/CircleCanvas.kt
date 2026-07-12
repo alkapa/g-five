@@ -82,10 +82,10 @@ fun CircleOfFifthsCanvas(
 
     val cells = remember(field) { cellMap(field) }
     val scalePositions = remember(state.tonic, state.scale) { state.key.circlePositions() }
-    val arcStart = remember(scalePositions) {
-        contiguousArcStart(scalePositions, state.key.notes().size.coerceAtMost(7))
-            .takeIf { state.key.notes().size == 7 }
-    }
+    // Mayor y modos: 7 posiciones contiguas; pentatónicas: 5 contiguas.
+    // Armónica/melódica no son contiguas → sin arco (la ficha lo explica).
+    val arcLength = scalePositions.size
+    val arcStart = remember(scalePositions) { contiguousArcStart(scalePositions, arcLength) }
     val overlay = state.key.pentatonicOverlay()
     val tonicCell = cells.entries.firstOrNull { it.value.index == 1 }?.key
 
@@ -102,9 +102,7 @@ fun CircleOfFifthsCanvas(
 
             fun cellColor(cell: Cell): Pair<Color, Boolean> {
                 val degree = cells[cell]
-                if (degree == null || Cell(cell.position, cell.outer) !in cells) {
-                    return colorScheme.surfaceVariant.copy(alpha = 0.5f) to false
-                }
+                    ?: return colorScheme.surfaceVariant.copy(alpha = 0.5f) to false
                 val dimmedByOverlay = overlay != null && degree.index !in overlay.includedDegrees
                 val base = if (CircleLayer.FUNCTIONS in state.layers) {
                     when {
@@ -177,7 +175,7 @@ fun CircleOfFifthsCanvas(
                 drawArc(
                     color = colorScheme.primary,
                     startAngle = startAngle,
-                    sweepAngle = 7 * 30f,
+                    sweepAngle = arcLength * 30f,
                     useCenter = false,
                     topLeft = center - Offset(arcRadius, arcRadius),
                     size = Size(arcRadius * 2, arcRadius * 2),

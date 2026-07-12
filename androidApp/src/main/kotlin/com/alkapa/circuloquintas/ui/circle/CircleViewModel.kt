@@ -178,10 +178,14 @@ class CircleViewModel(
         audio.playChord(MidiMapper.chordMidis(fieldKey(_state.value), chord))
     }
 
-    /** Toque en la barra de escala: suena la nota y se resalta su acorde (§6.2.5). */
+    /**
+     * Toque en la barra de escala: suena la nota y se resalta su acorde
+     * (§6.2.5). La barra dibuja las 7 notas de la escala madre en
+     * pentatónicas, así que se indexa esa misma lista.
+     */
     fun playScaleNote(noteIndex: Int) {
         val s = _state.value
-        val notes = s.key.notes()
+        val notes = (s.key.pentatonicOverlay()?.parent ?: s.key).notes()
         if (noteIndex !in notes.indices) return
         audio.playNote(MidiMapper.noteMidi(s.key, notes[noteIndex]))
         val degree = fieldKey(s).diatonicField(s.level)

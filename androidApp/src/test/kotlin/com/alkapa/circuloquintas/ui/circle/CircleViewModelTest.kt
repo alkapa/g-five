@@ -118,6 +118,18 @@ class CircleViewModelTest {
     }
 
     @Test
+    fun barraDeEscalaEnPentatonicaIndexaLaEscalaMadre() = runTest {
+        val vm = viewModel()
+        vm.setScale(ScaleType.PENT_MINOR) // C pent. menor; madre = C menor natural
+        // La barra muestra las 7 notas de la madre: índice 4 = G (grado 5).
+        vm.playScaleNote(4)
+        assertEquals(55, audio.playedNotes.last()) // G sobre C3 (48+7)
+        // Índice 6 = Bb (grado 7, incluido en la pentatónica menor): suena.
+        vm.playScaleNote(6)
+        assertEquals(58, audio.playedNotes.last())
+    }
+
+    @Test
     fun laEscalaYNivelPersistenEnPreferencias() = runTest {
         val vm = viewModel()
         vm.setScale(ScaleType.DORIAN)
