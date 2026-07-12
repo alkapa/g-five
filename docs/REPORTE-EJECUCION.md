@@ -2,6 +2,19 @@
 
 Fecha: 2026-07-12 · Rama: `claude/circulo-quintas-android-tbpgwo`
 
+> **Actualización (cierre de §12.7 vía GitHub Actions):** se agregó CI espejo
+> del de `alkapa/Mimic` (`.github/workflows/ci.yml` + composite action
+> `setup-android-build`). El run #2
+> (<https://github.com/alkapa/g-five/actions/runs/29204077760>) terminó
+> **completamente en verde**: `lintDebug` ✅, `:shared:testDebugUnitTest` +
+> `:androidApp:testDebugUnitTest` ✅ (incluye DAO Room y ViewModels con
+> Robolectric), `:androidApp:assembleDebug` ✅ (APK por defecto, AudioTrack) y
+> `assembleDebug -PenableOboe=true` ✅ (APK con síntesis C++/Oboe; requirió el
+> fix `-DANDROID_STL=c++_shared`, CXX1212). Artefactos: `debug-apk`,
+> `debug-apk-oboe`, `lint-results`, `unit-test-results`. Con esto, el §3 de
+> este reporte queda superado: la compilación y los tests de app corren en CI
+> en cada push a `claude/**` y en PRs a `main`.
+
 ## 1. Unidades completadas (plan §10)
 
 | # | Unidad | Estado | Verificación |
