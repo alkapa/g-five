@@ -31,7 +31,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -199,11 +198,12 @@ private fun GuitarSection(
     onPlayMidis: (List<Int>) -> Unit,
 ) {
     val toneMap = remember(chord) { GuitarFretboard.chordToneMap(chord) }
-    val voicings by produceState(
-        initialValue = emptyList<GuitarFretboard.Voicing>(),
-        chord, inversionIndex,
-    ) {
-        value = withContext(Dispatchers.Default) {
+    // La búsqueda de digitaciones se calcula fuera del hilo de UI.
+    var voicings by remember(chord, inversionIndex) {
+        androidx.compose.runtime.mutableStateOf(emptyList<GuitarFretboard.Voicing>())
+    }
+    androidx.compose.runtime.LaunchedEffect(chord, inversionIndex) {
+        voicings = withContext(Dispatchers.Default) {
             GuitarFretboard.voicings(chord, inversionIndex)
         }
     }
