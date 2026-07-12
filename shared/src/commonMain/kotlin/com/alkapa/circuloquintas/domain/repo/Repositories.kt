@@ -33,4 +33,7 @@ interface ProgressionRepository {
     suspend fun rename(id: Long, newName: String)
     suspend fun duplicate(id: Long, newName: String): Long
     suspend fun delete(id: Long)
+
+    /** Siembra idempotente del contenido precargado (9 famosas, §9). */
+    suspend fun seedDefaults()
 }
