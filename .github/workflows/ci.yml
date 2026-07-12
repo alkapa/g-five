@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ['claude/**']
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Lint, Test & Build Debug
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Android build environment
+        uses: ./.github/actions/setup-android-build
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Run Unit Tests
+        run: ./gradlew :shared:testDebugUnitTest :androidApp:testDebugUnitTest --stacktrace
+
+      - name: Build Debug APK
+        run: ./gradlew :androidApp:assembleDebug --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: androidApp/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+      # El camino Oboe (síntesis C++ sobre NDK) comparte la ruta de salida:
+      # se compila y sube después de guardar el APK por defecto.
+      - name: Build Debug APK (Oboe/NDK)
+        run: ./gradlew -PenableOboe=true :androidApp:assembleDebug --stacktrace
+
+      - name: Upload Debug APK (Oboe)
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk-oboe
+          path: androidApp/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+      - name: Upload Lint Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results
+          path: androidApp/build/reports/lint-results-debug.html
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            shared/build/reports/tests/
+            androidApp/build/reports/tests/testDebugUnitTest/
