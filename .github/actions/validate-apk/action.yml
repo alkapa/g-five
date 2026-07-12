@@ -1,0 +1,66 @@
+name: 'Validate APK'
+description: 'Validates APK structure, AAPT2 analysis, and signature'
+
+inputs:
+  apk-path:
+    description: 'Path to the APK file to validate'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate APK structure
+      shell: bash
+      run: |
+        APK="${{ inputs.apk-path }}"
+        echo "=== ZIP Integrity Check ==="
+        if ! unzip -t "$APK" > /dev/null 2>&1; then
+          echo "::error::APK is not a valid ZIP file"
+          exit 1
+        fi
+        echo "Valid ZIP archive"
+
+        CONTENTS=$(unzip -l "$APK")
+        for FILE in AndroidManifest.xml classes.dex; do
+          if ! echo "$CONTENTS" | grep -q "$FILE"; then
+            echo "::error::APK missing $FILE"
+            exit 1
+          fi
+          echo "$FILE present"
+        done
+
+        if echo "$CONTENTS" | grep -q "lib/.*\.so"; then
+          echo "Native libraries present"
+        else
+          echo "::warning::No native libraries found"
+        fi
+
+    - name: Validate APK with AAPT2
+      shell: bash
+      run: |
+        APK="${{ inputs.apk-path }}"
+        AAPT2=$(find "$ANDROID_HOME" -name "aapt2" -type f 2>/dev/null | sort -V | tail -1)
+        if [ -z "$AAPT2" ]; then
+          echo "::error::aapt2 not found"
+          exit 1
+        fi
+        if ! $AAPT2 dump badging "$APK" > /dev/null; then
+          echo "::error::AAPT2 failed to parse APK - may be corrupted"
+          exit 1
+        fi
+        echo "AAPT2 validation passed"
+
+    - name: Verify APK signature
+      shell: bash
+      run: |
+        APK="${{ inputs.apk-path }}"
+        APKSIGNER=$(find "$ANDROID_HOME" -name "apksigner" -type f 2>/dev/null | sort -V | tail -1)
+        if [ -z "$APKSIGNER" ]; then
+          echo "::error::apksigner not found"
+          exit 1
+        fi
+        if ! $APKSIGNER verify --verbose --print-certs "$APK"; then
+          echo "::error::APK signature verification FAILED - will not install on Android"
+          exit 1
+        fi
+        echo "APK signature valid"

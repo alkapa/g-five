@@ -13,6 +13,12 @@ plugins {
 // Kotlin) y NO compila código nativo. Ver §8 de la spec.
 val enableOboe = providers.gradleProperty("enableOboe").orNull?.toBoolean() ?: false
 
+// Versionado semántico desde gradle.properties (convención Mimic).
+val versionMajor = (providers.gradleProperty("VERSION_MAJOR").orNull ?: "0").toInt()
+val versionMinor = (providers.gradleProperty("VERSION_MINOR").orNull ?: "1").toInt()
+val versionPatch = (providers.gradleProperty("VERSION_PATCH").orNull ?: "0").toInt()
+val versionSuffix = providers.gradleProperty("VERSION_SUFFIX").orNull.orEmpty()
+
 android {
     namespace = "com.alkapa.circuloquintas"
     compileSdk = 35
@@ -21,8 +27,8 @@ android {
         applicationId = "com.alkapa.circuloquintas"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = versionMajor * 10000 + versionMinor * 100 + versionPatch
+        versionName = "$versionMajor.$versionMinor.$versionPatch$versionSuffix"
         buildConfigField("boolean", "ENABLE_OBOE", enableOboe.toString())
         if (enableOboe) {
             externalNativeBuild {

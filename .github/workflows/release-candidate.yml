@@ -1,0 +1,123 @@
+name: Release Candidate
+
+# Sin keystore configurado (secrets KEYSTORE_*), el RC publica el APK debug
+# instalable (firmado con la clave debug). Cuando existan los secrets, este
+# workflow puede migrar a assembleRelease firmado como el de Mimic.
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: release-candidate
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Android build environment
+        uses: ./.github/actions/setup-android-build
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Run Unit Tests
+        run: ./gradlew :shared:testDebugUnitTest :androidApp:testDebugUnitTest --stacktrace
+
+  release-candidate:
+    name: Build & Publish Release Candidate
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute RC tag
+        id: tag
+        run: |
+          MAJOR=$(grep '^VERSION_MAJOR=' gradle.properties | cut -d= -f2)
+          MINOR=$(grep '^VERSION_MINOR=' gradle.properties | cut -d= -f2)
+          PATCH=$(grep '^VERSION_PATCH=' gradle.properties | cut -d= -f2)
+          VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
+          DATE=$(date +'%Y%m%d')
+          TAG="v${VERSION}-rc.${DATE}.${SHORT_SHA}"
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "### Release Candidate: $TAG" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Setup Android build environment
+        uses: ./.github/actions/setup-android-build
+
+      - name: Cache Gradle wrapper
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+
+      - name: Build Debug APK (AudioTrack)
+        run: ./gradlew :androidApp:assembleDebug --stacktrace
+
+      - name: Rename APK
+        id: apk
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          APK_PATH=$(find androidApp/build/outputs/apk/debug -name '*.apk' | head -1)
+          APK_NAME="CirculoQuintas-${TAG}.apk"
+          cp "$APK_PATH" "$APK_NAME"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Build Debug APK (Oboe/NDK)
+        run: ./gradlew -PenableOboe=true :androidApp:assembleDebug --stacktrace
+
+      - name: Rename Oboe APK
+        id: apk_oboe
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          APK_PATH=$(find androidApp/build/outputs/apk/debug -name '*.apk' | head -1)
+          APK_NAME="CirculoQuintas-${TAG}-oboe.apk"
+          cp "$APK_PATH" "$APK_NAME"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Validate APK
+        uses: ./.github/actions/validate-apk
+        with:
+          apk-path: ${{ steps.apk.outputs.apk_name }}
+
+      - name: Validate Oboe APK
+        uses: ./.github/actions/validate-apk
+        with:
+          apk-path: ${{ steps.apk_oboe.outputs.apk_name }}
+
+      - name: Generate changelog
+        run: |
+          git log --pretty=format:"- %s" --no-merges -10 > /tmp/changelog.txt
+          {
+            echo ""
+            echo ""
+            echo "**APKs (debug, instalables):**"
+            echo "- \`CirculoQuintas-*.apk\` — motor de audio AudioTrack (por defecto)"
+            echo "- \`CirculoQuintas-*-oboe.apk\` — motor de audio Oboe (NDK/C++)"
+          } >> /tmp/changelog.txt
+
+      - name: Create GitHub Pre-Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.tag.outputs.tag }}" \
+            --title "Release Candidate ${{ steps.tag.outputs.tag }}" \
+            --notes-file /tmp/changelog.txt \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            "${{ steps.apk.outputs.apk_name }}" \
+            "${{ steps.apk_oboe.outputs.apk_name }}"
