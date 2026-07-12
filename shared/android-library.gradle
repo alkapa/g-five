@@ -1,0 +1,15 @@
+// Configuración Android del módulo :shared (Groovy a propósito: se aplica solo
+// cuando AGP está en el classpath; ver shared/build.gradle.kts).
+android {
+    namespace 'com.alkapa.circuloquintas.shared'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
