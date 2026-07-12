@@ -6,9 +6,7 @@ name: Release Candidate
 on:
   workflow_dispatch:
   push:
-    # claude/** temporal: disparo del primer RC desde la rama de desarrollo
-    # (la integración no tiene permiso para workflow_dispatch).
-    branches: [develop, 'claude/**']
+    branches: [develop]
 
 concurrency:
   group: release-candidate
