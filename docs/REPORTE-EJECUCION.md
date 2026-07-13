@@ -166,3 +166,30 @@ Por pedido del owner (jul 2026) se levantó parcialmente la restricción §1.4
   por intervalo, chips por zona, tablatura monoespaciada, ▶ con los midis
   reales de la digitación) y vista Piano (teclado dibujado con la inversión
   repetida por octavas, bajo con borde, ▶).
+
+## 9. Refactor de UI «2a — Claridad+» (Refactor Círculo.dc.html)
+
+Implementado el diseño aprobado en Claude Design (proyecto «LG Fire UX
+refactor», Turno 2, opción 2a). Dominio nuevo `domain/wheel` (13 tests):
+colocación del donut (mayores/relativas/disminuidos por quintas), fórmulas de
+escala (1, ♭3, ♯4…), inversiones con apilado cerrado, digitaciones por grupo
+de cuerdas (tríadas cerradas, drop-2 en séptimas), formas estándar
+abiertas/cejilla y progresiones por familia. UI reescrita: tema oscuro con 3
+paletas de función, rueda donut con centro de tonalidad, leyenda +
+Tríadas/Séptimas, tira de escala reactiva, rail I–VII, tarjeta de detalle con
+inversiones y vistas Guitarra/Piano/Diapasón, tab Progresiones conectado
+(«Ver en el círculo» proyecta y atenúa), hoja Tonalidad y escala, y ajustes
+(cifrado/paleta/grados).
+
+Decisiones registradas: (1) los colores de función usan la tabla FN7 del
+diseño (T-S-T-S-D-T-D, sin ambigüedad visual; el modelo rico §4-§5 sigue en
+las fichas por pulsación larga); (2) el selector no expone el nivel
+Extensiones (el diseño es Tríadas/Séptimas; el motor lo conserva); (3) se
+añadió Menor melódica al selector (el diseño la omitía); (4) el deletreo
+enarmónico es automático por tonalidad (regla del diseño) y reemplaza al
+toggle; (5) se conservó el audio en toques de acordes, inversiones, voicings
+y progresiones (el mock lo dejaba para fase 2); (6) el constructor de
+progresiones propias y la biblioteca guardada quedan fuera de esta iteración
+de UI (capa de datos y tests intactos) a la espera de su propio diseño; el
+buscador por sensación y la hoja de instrumento anterior quedan sustituidos
+por el rail coloreado y la tarjeta de detalle integrada.

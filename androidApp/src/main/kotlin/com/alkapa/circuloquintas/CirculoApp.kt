@@ -67,7 +67,7 @@ class AppContainer private constructor(
 /**
  * Progresión en edición, compartida entre el tab Círculo (que agrega acordes)
  * y el tab Progresiones (que la edita y reproduce). Vive en el contenedor de
- * la app; ProgressionsViewModel la respalda en SavedStateHandle para
+ * la app; el ViewModel que la use puede respaldarla en SavedStateHandle para
  * sobrevivir a la muerte de proceso.
  */
 class ProgressionDraftHolder {

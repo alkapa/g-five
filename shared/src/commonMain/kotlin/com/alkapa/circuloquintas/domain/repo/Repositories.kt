@@ -1,23 +1,22 @@
 package com.alkapa.circuloquintas.domain.repo
 
-import com.alkapa.circuloquintas.domain.ChordLevel
 import com.alkapa.circuloquintas.domain.Notation
-import com.alkapa.circuloquintas.domain.Note
 import com.alkapa.circuloquintas.domain.Progression
 import com.alkapa.circuloquintas.domain.ScaleType
 import kotlinx.coroutines.flow.Flow
 
-/** Capas superpuestas del círculo (§6.2.4). Acordes es la base, siempre visible. */
-enum class CircleLayer { DEGREES, FUNCTIONS }
-
-/** Preferencias persistidas (§9). */
+/**
+ * Preferencias persistidas (§9, adaptadas al refactor 2a): cifrado, paleta de
+ * funciones, mostrar grados, y última sesión (raíz por clase de altura +
+ * escala + Tríadas/Séptimas — el deletreo lo decide WheelModel).
+ */
 data class UserPreferences(
     val notation: Notation = Notation.AMERICAN,
-    val preferFlatEnharmonic: Boolean = false,
-    val lastTonic: Note = Note('C', 0),
+    val palette: Int = 0,
+    val showDegrees: Boolean = true,
+    val lastRootPc: Int = 0,
     val lastScale: ScaleType = ScaleType.MAJOR,
-    val lastChordLevel: ChordLevel = ChordLevel.TRIADS,
-    val activeLayers: Set<CircleLayer> = setOf(CircleLayer.FUNCTIONS),
+    val lastSeventh: Boolean = false,
 )
 
 interface PreferencesRepository {

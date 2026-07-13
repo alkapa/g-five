@@ -6,11 +6,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.alkapa.circuloquintas.domain.ChordLevel
 import com.alkapa.circuloquintas.domain.Notation
-import com.alkapa.circuloquintas.domain.Note
 import com.alkapa.circuloquintas.domain.ScaleType
-import com.alkapa.circuloquintas.domain.repo.CircleLayer
 import com.alkapa.circuloquintas.domain.repo.PreferencesRepository
 import com.alkapa.circuloquintas.domain.repo.UserPreferences
 import kotlinx.coroutines.flow.Flow
@@ -19,54 +16,40 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "circulo_prefs")
 
-/** Preferencias §9: cifrado, enarmonía default y última sesión. */
+/** Preferencias del refactor 2a: cifrado, paleta, grados y última sesión. */
 class DataStorePreferencesRepository(private val context: Context) : PreferencesRepository {
 
     private object Keys {
         val notation = stringPreferencesKey("notation")
-        val preferFlat = booleanPreferencesKey("enharmonicDefaultFlat")
-        val lastTonicLetter = stringPreferencesKey("lastTonicLetter")
-        val lastTonicAccidental = intPreferencesKey("lastTonicAccidental")
+        val palette = intPreferencesKey("palette")
+        val showDegrees = booleanPreferencesKey("showDegrees")
+        val lastRootPc = intPreferencesKey("lastRootPc")
         val lastScale = stringPreferencesKey("lastScale")
-        val lastChordLevel = stringPreferencesKey("lastChordLevel")
-        val activeLayers = stringPreferencesKey("activeLayers")
+        val lastSeventh = booleanPreferencesKey("lastSeventh")
     }
 
     override val preferences: Flow<UserPreferences> = context.dataStore.data.map { p ->
-        // Estado inicial de primera apertura (§6.1): C mayor, tríadas, capa
-        // Funciones activa, cifrado americano.
         UserPreferences(
             notation = p[Keys.notation]?.let { runCatching { Notation.valueOf(it) }.getOrNull() }
                 ?: Notation.AMERICAN,
-            preferFlatEnharmonic = p[Keys.preferFlat] ?: false,
-            lastTonic = Note(
-                (p[Keys.lastTonicLetter] ?: "C").first(),
-                p[Keys.lastTonicAccidental] ?: 0,
-            ),
+            palette = (p[Keys.palette] ?: 0).coerceIn(0, 2),
+            showDegrees = p[Keys.showDegrees] ?: true,
+            lastRootPc = (p[Keys.lastRootPc] ?: 0).mod(12),
             lastScale = p[Keys.lastScale]?.let { runCatching { ScaleType.valueOf(it) }.getOrNull() }
                 ?: ScaleType.MAJOR,
-            lastChordLevel = p[Keys.lastChordLevel]
-                ?.let { runCatching { ChordLevel.valueOf(it) }.getOrNull() }
-                ?: ChordLevel.TRIADS,
-            activeLayers = (p[Keys.activeLayers] ?: CircleLayer.FUNCTIONS.name)
-                .split(',')
-                .filter { it.isNotBlank() }
-                .mapNotNull { name -> runCatching { CircleLayer.valueOf(name) }.getOrNull() }
-                .toSet(),
+            lastSeventh = p[Keys.lastSeventh] ?: false,
         )
     }
 
     override suspend fun update(transform: (UserPreferences) -> UserPreferences) {
-        val current = preferences.first()
-        val next = transform(current)
+        val next = transform(preferences.first())
         context.dataStore.edit { p ->
             p[Keys.notation] = next.notation.name
-            p[Keys.preferFlat] = next.preferFlatEnharmonic
-            p[Keys.lastTonicLetter] = next.lastTonic.letter.toString()
-            p[Keys.lastTonicAccidental] = next.lastTonic.accidental
+            p[Keys.palette] = next.palette
+            p[Keys.showDegrees] = next.showDegrees
+            p[Keys.lastRootPc] = next.lastRootPc
             p[Keys.lastScale] = next.lastScale.name
-            p[Keys.lastChordLevel] = next.lastChordLevel.name
-            p[Keys.activeLayers] = next.activeLayers.joinToString(",") { it.name }
+            p[Keys.lastSeventh] = next.lastSeventh
         }
     }
 }
