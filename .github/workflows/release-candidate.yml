@@ -6,7 +6,7 @@ name: Release Candidate
 on:
   workflow_dispatch:
   push:
-    branches: [develop]
+    branches: [develop, 'claude/**']
 
 concurrency:
   group: release-candidate
@@ -15,6 +15,12 @@ concurrency:
 jobs:
   validate:
     name: Lint & Unit Tests
+    # En develop y por dispatch corre siempre; en ramas claude/** solo cuando
+    # el commit lleva la marca [rc] (un RC por cambio completado, no por push).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.ref_name == 'develop' ||
+      contains(github.event.head_commit.message, '[rc]')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
