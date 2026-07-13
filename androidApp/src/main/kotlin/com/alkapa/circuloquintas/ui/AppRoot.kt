@@ -6,12 +6,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,7 +56,12 @@ fun AppRoot(container: AppContainer) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Wheel.Bg),
+                .background(Wheel.Bg)
+                // targetSdk 35 fuerza edge-to-edge: sin esto la barra de estado
+                // tapa el encabezado y el cutout puede comerse los laterales.
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
+                ),
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 WheelScreen(viewModel)
@@ -74,6 +85,9 @@ private fun BottomNav(tab: Int, onTab: (Int) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Wheel.BgDeep)
+                // El fondo se extiende bajo la barra de gestos; los ítems quedan
+                // por encima de ella en vez de cortados.
+                .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(top = 7.dp, bottom = 9.dp),
         ) {
             NavItem(

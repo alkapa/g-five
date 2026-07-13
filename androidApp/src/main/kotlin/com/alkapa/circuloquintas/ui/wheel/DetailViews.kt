@@ -1,8 +1,11 @@
 package com.alkapa.circuloquintas.ui.wheel
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -156,10 +159,13 @@ fun PianoKeys(
     color: Color,
     modifier: Modifier = Modifier,
 ) {
+    // Ancho fluido con tope: en pantallas angostas se encoge (el dibujo escala
+    // con size.width) en vez de desbordar la tarjeta.
     Canvas(
         modifier = modifier
-            .width(310.dp)
-            .height(90.dp),
+            .widthIn(max = 310.dp)
+            .fillMaxWidth()
+            .aspectRatio(310f / 90f),
     ) {
         val scale = size.width / 310f
         val whitePcs = listOf(0, 2, 4, 5, 7, 9, 11)
@@ -209,10 +215,12 @@ fun FretboardFull(
     modifier: Modifier = Modifier,
 ) {
     val textMeasurer = rememberTextMeasurer()
+    // Igual que el piano: fluido hasta 330dp para no cortar los trastes altos.
     Canvas(
         modifier = modifier
-            .width(330.dp)
-            .height(132.dp),
+            .widthIn(max = 330.dp)
+            .fillMaxWidth()
+            .aspectRatio(330f / 132f),
     ) {
         val scale = size.width / 330f
         val tuningPc = listOf(4, 9, 2, 7, 11, 4)

@@ -1,4 +1,7 @@
-@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@file:OptIn(
+    androidx.compose.foundation.ExperimentalFoundationApi::class,
+    androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
+)
 
 package com.alkapa.circuloquintas.ui.wheel
 
@@ -10,6 +13,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +42,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alkapa.circuloquintas.domain.DefaultNoteFormatter
@@ -114,34 +119,46 @@ private fun HeaderBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 10.dp),
+            .padding(start = 18.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Wheel.TextPrimary)
-        Spacer(Modifier.weight(1f))
+        Text(title, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Wheel.TextPrimary, maxLines = 1)
+        Spacer(Modifier.width(10.dp))
+        // La pastilla cede espacio (con elipsis) antes que empujar el engranaje
+        // fuera de la pantalla en tonalidades largas o pantallas angostas.
         Row(
-            modifier = Modifier
-                .background(Wheel.CardAlt, RoundedCornerShape(999.dp))
-                .border(1.dp, Wheel.Border, RoundedCornerShape(999.dp))
-                .clickable(onClick = onOpenSheet)
-                .padding(horizontal = 15.dp, vertical = 9.dp),
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            horizontalArrangement = Arrangement.End,
         ) {
-            Text(
-                keyName,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontFamily = FontFamily.Monospace,
-                color = Wheel.TextPrimary,
-            )
-            Text("▼", fontSize = 9.sp, color = Wheel.TextSecondary)
-        }
-        IconButton(
-            onClick = onOpenSettings,
-            modifier = Modifier.semantics { contentDescription = "Ajustes" },
-        ) {
-            Icon(Icons.Filled.Settings, contentDescription = null, tint = Wheel.TextSecondary)
+            Row(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .background(Wheel.CardAlt, RoundedCornerShape(999.dp))
+                    .border(1.dp, Wheel.Border, RoundedCornerShape(999.dp))
+                    .clickable(onClick = onOpenSheet)
+                    .padding(horizontal = 15.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                Text(
+                    keyName,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FontFamily.Monospace,
+                    color = Wheel.TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Text("▼", fontSize = 9.sp, color = Wheel.TextSecondary)
+            }
+            IconButton(
+                onClick = onOpenSettings,
+                modifier = Modifier.semantics { contentDescription = "Ajustes" },
+            ) {
+                Icon(Icons.Filled.Settings, contentDescription = null, tint = Wheel.TextSecondary)
+            }
         }
     }
 }
@@ -172,25 +189,32 @@ private fun CircleTab(
         onTapDegree = viewModel::selectChord,
     )
 
-    // Leyenda + conmutador Tríadas/Séptimas.
-    Row(
+    // Leyenda + conmutador Tríadas/Séptimas. FlowRow: en pantallas angostas el
+    // conmutador baja a una segunda línea en vez de cortarse por la derecha.
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         for (fn in WheelModel.Fn.entries) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Box(Modifier.size(8.dp).background(palette.of(fn), CircleShape))
                 Text(fnLabel(fn), fontSize = 11.sp, color = Wheel.TextSecondary)
             }
         }
-        SegPill(
-            options = listOf("Tríadas", "Séptimas"),
-            selected = if (state.seventh) 1 else 0,
-            onSelect = { viewModel.setSeventh(it == 1) },
-        )
+        Box(Modifier.align(Alignment.CenterVertically)) {
+            SegPill(
+                options = listOf("Tríadas", "Séptimas"),
+                selected = if (state.seventh) 1 else 0,
+                onSelect = { viewModel.setSeventh(it == 1) },
+            )
+        }
     }
 
     // Banner de progresión activa.
@@ -362,6 +386,8 @@ fun SegPill(
                 fontSize = 10.5.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = if (sel) Wheel.TextPrimary else Wheel.TextMuted,
+                maxLines = 1,
+                softWrap = false,
                 modifier = Modifier
                     .background(if (sel) Wheel.Border else Color.Transparent, RoundedCornerShape((corner - 2).coerceAtLeast(4).dp))
                     .clickable { onSelect(i) }
@@ -461,7 +487,8 @@ private fun DetailCard(
             fontSize = 11.sp, color = Wheel.TextMuted, modifier = Modifier.padding(top = 2.dp),
         )
 
-        // Chips de inversión + selector de vista.
+        // Chips de inversión. El selector de vista va en su propia fila: juntos
+        // no caben en pantallas angostas y quedaban cortados.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -494,7 +521,13 @@ private fun DetailCard(
                     )
                 }
             }
-            Spacer(Modifier.width(6.dp))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 9.dp),
+            horizontalArrangement = Arrangement.Center,
+        ) {
             SegPill(
                 options = listOf("Guitarra", "Piano", "Diapasón"),
                 selected = state.view,
